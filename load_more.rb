@@ -57,11 +57,11 @@ Plugin.create :load_more do
           Plugin.call(:update, Service.primary, messages)
           Plugin.call(:mention, Service.primary, messages)
           Plugin.call(:mypost, Service.primary, messages.select{ |m| m.from_me? })
-        }.terminate()
+        }.terminate("load_more: reply の追加取得に失敗しました")
 
       elsif opt.widget.slug =~ /list_@(.+?)\/(.+)/
         params = {
-          owner_screen_name: $1,
+          owner_screen_name: opt.messages.first.user[:idname],
           slug: $2,
           max_id: opt.messages.first[:id] - 1,
           count: [UserConfig[:load_more_list_retrieve_count], 200].min,
@@ -69,18 +69,18 @@ Plugin.create :load_more do
         }
         Service.primary.list_statuses(params).next { |messages|
           timeline(opt.widget.slug) << messages
-        }.terminate()
+        }.terminate("load_more: list の追加取得に失敗しました")
 
       elsif opt.widget.parent.slug =~ /usertimeline_(.+)_.+_.+_.+/
         params = {
-          screen_name: $1,
+          screen_name: opt.messages.first.user[:idname],
           max_id: opt.messages.first[:id] - 1,
           count: [UserConfig[:load_more_usertimeline_retrieve_count], 200].min,
           include_rts: 1
         }
         Service.primary.user_timeline(params).next { |messages|
           timeline(opt.widget.slug) << messages
-        }.terminate()
+        }.terminate("load_more: usertimeline の追加取得に失敗しました")
 
       elsif opt.widget.slug == :own_favorites_list
         screen_name = Service.primary.user_obj[:idname]
@@ -94,7 +94,7 @@ Plugin.create :load_more do
                     } )
 
       elsif opt.widget.parent.slug =~ /favorites_list_(.+)_.+_.+_.+/
-        screen_name = $1
+        screen_name = opt.messages.first.user[:idname]
         Plugin.call(:retrieve_favorites_list,
                     Service.primary,
                     screen_name,
