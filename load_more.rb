@@ -43,9 +43,9 @@ Plugin.create :load_more do
           max_id: opt.messages.first[:id] - 1
         }
         Service.primary.home_timeline(params).next{ |messages|
-          Plugin.call(:update, Service, messages)
-          Plugin.call(:mention, Service, messages.select{ |m| m.to_me? })
-          Plugin.call(:mypost, Service, messages.select{ |m| m.from_me? })
+          Plugin.call(:update, Service.primary, messages)
+          Plugin.call(:mention, Service.primary, messages.select{ |m| m.to_me? })
+          Plugin.call(:mypost, Service.primary, messages.select{ |m| m.from_me? })
         }
 
       elsif opt.widget.slug == :mentions
@@ -54,9 +54,9 @@ Plugin.create :load_more do
           max_id: opt.messages.first[:id] - 1
         }
         Service.primary.mentions(params).next{ |messages|
-          Plugin.call(:update, Service, messages)
-          Plugin.call(:mention, Service, messages)
-          Plugin.call(:mypost, Service, messages.select{ |m| m.from_me? })
+          Plugin.call(:update, Service.primary, messages)
+          Plugin.call(:mention, Service.primary, messages)
+          Plugin.call(:mypost, Service.primary, messages.select{ |m| m.from_me? })
         }.terminate()
 
       elsif opt.widget.slug =~ /list_@(.+?)\/(.+)/
@@ -85,7 +85,7 @@ Plugin.create :load_more do
       elsif opt.widget.slug == :own_favorites_list
         screen_name = Service.primary.user_obj[:idname]
         Plugin.call(:retrieve_favorites_list,
-                    Service,
+                    Service.primary,
                     screen_name,
                     opt.widget.slug,
                     {
@@ -96,7 +96,7 @@ Plugin.create :load_more do
       elsif opt.widget.parent.slug =~ /favorites_list_(.+)_.+_.+_.+/
         screen_name = $1
         Plugin.call(:retrieve_favorites_list,
-                    Service,
+                    Service.primary,
                     screen_name,
                     opt.widget.slug,
                     {
