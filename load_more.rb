@@ -73,7 +73,8 @@ Plugin.create :load_more do
 
       elsif opt.widget.parent.slug =~ /usertimeline_(.+)_.+_.+_.+/
         params = {
-          screen_name: opt.messages.first.user[:idname],
+          # profile-http://twitter.com/username -> username
+          screen_name: $1.split('/').last,
           max_id: opt.messages.first[:id] - 1,
           count: [UserConfig[:load_more_usertimeline_retrieve_count], 200].min,
           include_rts: 1
