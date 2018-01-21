@@ -95,7 +95,8 @@ Plugin.create :load_more do
                     } )
 
       elsif opt.widget.parent.slug =~ /favorites_list_(.+)_.+_.+_.+/
-        screen_name = opt.messages.first.user[:idname]
+        # profile-http://twitter.com/username -> username
+        screen_name = $1.split('/').last
         Plugin.call(:retrieve_favorites_list,
                     Service.primary,
                     screen_name,
