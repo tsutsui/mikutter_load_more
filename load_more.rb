@@ -40,7 +40,8 @@ Plugin.create :load_more do
       if opt.widget.slug == :home_timeline
         params = {
           count: [UserConfig[:load_more_timeline_retrieve_count], 200].min,
-          max_id: opt.messages.first[:id] - 1
+          max_id: opt.messages.first[:id] - 1,
+          tweet_mode: 'extended'.freeze
         }
         Service.primary.home_timeline(params).next{ |messages|
           Plugin.call(:update, Service.primary, messages)
@@ -51,7 +52,8 @@ Plugin.create :load_more do
       elsif opt.widget.slug == :mentions
         params = {
           count: [UserConfig[:load_more_reply_retrieve_count], 200].min,
-          max_id: opt.messages.first[:id] - 1
+          max_id: opt.messages.first[:id] - 1,
+          tweet_mode: 'extended'.freeze
         }
         Service.primary.mentions(params).next{ |messages|
           Plugin.call(:update, Service.primary, messages)
@@ -65,7 +67,8 @@ Plugin.create :load_more do
           slug: $2,
           max_id: opt.messages.first[:id] - 1,
           count: [UserConfig[:load_more_list_retrieve_count], 200].min,
-          include_rts: 1
+          include_rts: 1,
+          tweet_mode: 'extended'.freeze
         }
         Service.primary.list_statuses(params).next { |messages|
           timeline(opt.widget.slug) << messages
@@ -77,7 +80,8 @@ Plugin.create :load_more do
           screen_name: $1.split('/').last,
           max_id: opt.messages.first[:id] - 1,
           count: [UserConfig[:load_more_usertimeline_retrieve_count], 200].min,
-          include_rts: 1
+          include_rts: 1,
+          tweet_mode: 'extended'.freeze
         }
         Service.primary.user_timeline(params).next { |messages|
           timeline(opt.widget.slug) << messages
@@ -91,7 +95,8 @@ Plugin.create :load_more do
                     opt.widget.slug,
                     {
                       count: [UserConfig[:load_more_favorite_retrieve_count], 200].min,
-                      max_id: opt.messages.first[:id] - 1
+                      max_id: opt.messages.first[:id] - 1,
+                      tweet_mode: 'extended'.freeze
                     } )
 
       elsif opt.widget.parent.slug =~ /favorites_list_(.+)_.+_.+_.+/
@@ -103,7 +108,8 @@ Plugin.create :load_more do
                     opt.widget.slug,
                     {
                       count: [UserConfig[:load_more_favorite_retrieve_count], 200].min,
-                      max_id: opt.messages.first[:id] - 1
+                      max_id: opt.messages.first[:id] - 1,
+                      tweet_mode: 'extended'.freeze
                     } )
 
       end
