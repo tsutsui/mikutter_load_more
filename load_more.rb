@@ -37,16 +37,21 @@ Plugin.create :load_more do
     },
     visible: true,
     role: :timeline) do |opt|
+      twitter = Enumerator.new{|y|
+        Plugin.filtering(:worlds, y)
+      }.find{|world|
+        world.class.slug == :twitter
+      }
       if opt.widget.slug == :home_timeline
         params = {
           count: [UserConfig[:load_more_timeline_retrieve_count], 200].min,
           max_id: opt.messages.first[:id] - 1,
           tweet_mode: 'extended'.freeze
         }
-        Service.primary.home_timeline(params).next{ |messages|
-          Plugin.call(:update, Service.primary, messages)
-          Plugin.call(:mention, Service.primary, messages.select{ |m| m.to_me? })
-          Plugin.call(:mypost, Service.primary, messages.select{ |m| m.from_me? })
+        twitter.home_timeline(params).next{ |messages|
+          Plugin.call(:update, twitter, messages)
+          Plugin.call(:mention, twitter, messages.select{ |m| m.to_me? })
+          Plugin.call(:mypost, twitter, messages.select{ |m| m.from_me? })
         }
 
       elsif opt.widget.slug == :mentions
@@ -55,10 +60,10 @@ Plugin.create :load_more do
           max_id: opt.messages.first[:id] - 1,
           tweet_mode: 'extended'.freeze
         }
-        Service.primary.mentions(params).next{ |messages|
-          Plugin.call(:update, Service.primary, messages)
-          Plugin.call(:mention, Service.primary, messages)
-          Plugin.call(:mypost, Service.primary, messages.select{ |m| m.from_me? })
+        twitter.mentions(params).next{ |messages|
+          Plugin.call(:update, twitter, messages)
+          Plugin.call(:mention, twitter, messages)
+          Plugin.call(:mypost, twitter, messages.select{ |m| m.from_me? })
         }.terminate("load_more: reply の追加取得に失敗しました")
 
       elsif opt.widget.slug =~ /list_@(.+?)\/(.+)/
@@ -70,7 +75,7 @@ Plugin.create :load_more do
           include_rts: 1,
           tweet_mode: 'extended'.freeze
         }
-        Service.primary.list_statuses(params).next { |messages|
+        twitter.list_statuses(params).next { |messages|
           timeline(opt.widget.slug) << messages
         }.terminate("load_more: list の追加取得に失敗しました")
 
@@ -83,14 +88,14 @@ Plugin.create :load_more do
           include_rts: 1,
           tweet_mode: 'extended'.freeze
         }
-        Service.primary.user_timeline(params).next { |messages|
+        twitter.user_timeline(params).next { |messages|
           timeline(opt.widget.slug) << messages
         }.terminate("load_more: usertimeline の追加取得に失敗しました")
 
       elsif opt.widget.slug == :own_favorites_list
-        screen_name = Service.primary.user_obj[:idname]
+        screen_name = twitter.user_obj[:idname]
         Plugin.call(:retrieve_favorites_list,
-                    Service.primary,
+                    twitter,
                     screen_name,
                     opt.widget.slug,
                     {
@@ -103,7 +108,7 @@ Plugin.create :load_more do
         # profile-http://twitter.com/username -> username
         screen_name = $1.split('/').last
         Plugin.call(:retrieve_favorites_list,
-                    Service.primary,
+                    twitter,
                     screen_name,
                     opt.widget.slug,
                     {
